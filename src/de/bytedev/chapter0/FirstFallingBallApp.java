@@ -7,8 +7,11 @@
 
 package de.bytedev.chapter0;
 
+import de.bytedev.ui.ExtendedPlotFrame;
 import org.opensourcephysics.controls.AbstractCalculation;
+import org.opensourcephysics.controls.AbstractSimulation;
 import org.opensourcephysics.controls.CalculationControl;
+import org.opensourcephysics.controls.SimulationControl;
 
 /**
  * FirstFallingBallApp computes the time for a ball to fall 10 meters and displays the variables.
@@ -16,15 +19,17 @@ import org.opensourcephysics.controls.CalculationControl;
  * @author Wolfgang Christian, Jan Tobochnik, Harvey Gould
  * @version 1.0
  */
-public class FirstFallingBallApp extends AbstractCalculation {
+public class FirstFallingBallApp extends AbstractSimulation {
 
-    enum Types {
-        INITIALTIME("Initial Time"),
-        TIMESTEP("Time Step");
+    enum Param {
+        INITIAL_TIME("Initial Time"),
+        INITIAL_VELOCITY("Initial Velocity"),
+        TIME_STEP("Time Step");
+        
 
-        private String v;
+        private final String v;
 
-        Types(String v) {
+        Param(final String v) {
             this.v = v;
         }
 
@@ -34,60 +39,68 @@ public class FirstFallingBallApp extends AbstractCalculation {
         }
     }
 
+    private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("t", "y", "Freier Fall");
+    private Particle particle;
+    private double t;
+    private double v;
+    private double dt;
+
     /**
      * Starts the Java application.
      *
      * @param args command line parameters
      */
     public static void main(String[] args) {
-        CalculationControl.createApp(new FirstFallingBallApp());
+        //CalculationControl.createApp(new FirstFallingBallApp());
+        SimulationControl.createApp(new FirstFallingBallApp());
     }
 
     @Override
-    public void calculate() {
-        double t = this.control.getDouble(Types.INITIALTIME.toString());     // time
-        double dt = this.control.getDouble(Types.TIMESTEP.toString()); // time step
+    public void initialize() {
+        super.initialize();
 
-        Particle p = new Particle(10, 0, t);
+        this.t = this.control.getDouble(Param.INITIAL_TIME.toString());
+        this.v = this.control.getDouble(Param.INITIAL_VELOCITY.toString());
+        this.dt = this.control.getDouble(Param.TIME_STEP.toString());
 
-        for (int n = 0; n < 100; n++) {
-            p.update(dt);
-            t = t + dt;
+        this.particle = new Particle(10, this.v, this.t);
+
+        this.plotFrame.newPlot();
+    }
+
+    @Override
+    public void startRunning() {
+        super.startRunning();
+    }
+
+    @Override
+    protected void doStep() {
+        if( this.particle.hitsGround() ) {
+            this.control.calculationDone("Particle hits the ground!");
         }
+
+        this.particle.update(this.dt);
+        this.t = this.t + this.dt;
+
+        this.plotFrame.append(t, this.particle.getY());
+    }
+
+    @Override
+    public void stopRunning() {
+        super.stopRunning();
 
         this.control.println("Results");
         this.control.println("final time = " + t);
-        this.control.println("numerical:\n" + p.toString() );
-        this.control.println("analytic: y = " + p.analyticalY(t) + " v = " + p.analyticV(t));
+        this.control.println("numerical:\n" + this.particle.toString() );
+        this.control.println("analytic: y = " + this.particle.analyticalY(t) + " v = " + this.particle.analyticV(t));
     }
 
     @Override
     public void reset() {
-        this.control.setValue(Types.INITIALTIME.toString(), 0);
-        this.control.setValue(Types.TIMESTEP.toString(), 0.01);
+        this.control.setValue(Param.INITIAL_TIME.toString(), 0);
+        this.control.setValue(Param.INITIAL_VELOCITY.toString(), 0);
+        this.control.setValue(Param.TIME_STEP.toString(), 0.01);
+
+        this.plotFrame.clearData();
     }
 }
-
-/* 
- * Open Source Physics software is free software; you can redistribute
- * it and/or modify it under the terms of the GNU General Public License (GPL) as
- * published by the Free Software Foundation; either version 2 of the License,
- * or(at your option) any later version.
-
- * Code that uses any portion of the code in the org.opensourcephysics package
- * or any subpackage (subdirectory) of this package must must also be be released
- * under the GNU GPL license.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
- * or view the license online at http://www.gnu.org/copyleft/gpl.html
- *
- * Copyright (c) 2007  The Open Source Physics project
- *                     http://www.opensourcephysics.org
- */

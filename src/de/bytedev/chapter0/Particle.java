@@ -59,6 +59,14 @@ public class Particle {
     }
 
     /**
+     * This method returns true, if the particle hits the ground.
+     * @return
+     */
+    public boolean hitsGround() {
+        return this.y <= 0;
+    }
+
+    /**
      * Update the position and the velocity of the particle depending on the delta time.
      * Using the Euler algorithm.
      *
