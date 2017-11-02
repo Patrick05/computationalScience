@@ -1,5 +1,7 @@
 package de.bytedev.chapter0;
 
+import de.bytedev.utility.World;
+
 /**
  * This class describes a single particle with radius of 0.
  */
