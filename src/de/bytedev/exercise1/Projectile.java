@@ -16,15 +16,17 @@ public class Projectile implements Drawable, ODE {
     private double initialV;
     private double initialY;
     private double m;
+    private double c2;
 
     private EulerRichardson odeSolver = new EulerRichardson(this);
 
     private static final int PIX_RADIUS = 6;
 
-    public Projectile(double initialX, double initialY, double initialAngle, double initialV, double m) {
+    public Projectile(double initialX, double initialY, double initialAngle, double initialV, double m, double c2) {
         this.initialV = initialV;
         this.initialY = initialY;
         this.m = m;
+        this.c2 = c2;
         double vx = initialV * Math.cos(Math.toRadians(initialAngle));
         double vy = initialV * Math.sin(Math.toRadians(initialAngle));
 
@@ -80,14 +82,23 @@ public class Projectile implements Drawable, ODE {
 
     @Override
     public void getRate(double[] state, double[] rate) {
+
         rate[0] = state[1]; // rate of change of x
-        rate[1] = 0;        // rate of change of vx
+        if(ProjectileApp.USE_AIR_EFFECTS) {
+            rate[1] = -(this.c2 * this.state[1] * Math.sqrt(Math.pow(this.state[1],2) + Math.pow(this.state[3],2))) / this.m;        // rate of change of vx
+        } else {
+            rate[1] = 0;
+        }
         rate[2] = state[3]; // rate of change of y
 
         if(ProjectileApp.USE_DYNAMIC_GRAVITY) {
             rate[3] = -World.accelerationAt(this.state[2]); // rate of change of vy
         } else {
             rate[3] = -World.g;
+        }
+
+        if(ProjectileApp.USE_AIR_EFFECTS) {
+            rate[3] = rate[3] -(this.c2 * this.state[3] * Math.sqrt(Math.pow(this.state[1],2) + Math.pow(this.state[3],2)))/this.m;
         }
 
         rate[4] = 1;        // dt/dt = 1

@@ -11,8 +11,10 @@ public class ProjectileApp extends AbstractSimulation {
         INITIAL_Y("Initial Y"),
         INITIAL_VELOCITY("Initial Velocity"),
         PROJECTILE_MASS("Projectile mass"),
+        PROJECTILE_C2("Projectile C2"),
         TIME_STEP("Time Step"),
-        USE_DYNAMIC_GRAVITY("Use dynamic gravity");
+        USE_DYNAMIC_GRAVITY("Use dynamic gravity"),
+        USE_AIR_EFFECTS("Use air effects");
 
         private final String v;
 
@@ -33,19 +35,22 @@ public class ProjectileApp extends AbstractSimulation {
     private double dt;
 
     public static boolean USE_DYNAMIC_GRAVITY;
+    public static boolean USE_AIR_EFFECTS;
 
     @Override
     public void initialize() {
         this.t = 0;
         this.dt = this.control.getDouble(Param.TIME_STEP.toString());
         USE_DYNAMIC_GRAVITY = this.control.getBoolean(Param.USE_DYNAMIC_GRAVITY.toString());
+        USE_AIR_EFFECTS = this.control.getBoolean(Param.USE_AIR_EFFECTS.toString());
 
         this.projectile =  new Projectile(
                 this.control.getDouble(Param.INITIAL_X.toString()),
                 this.control.getDouble(Param.INITIAL_Y.toString()),
                 this.control.getDouble(Param.INITIAL_ANGLE.toString()),
                 this.control.getDouble(Param.INITIAL_VELOCITY.toString()),
-                this.control.getDouble(Param.PROJECTILE_MASS.toString())
+                this.control.getDouble(Param.PROJECTILE_MASS.toString()),
+                this.control.getDouble(Param.PROJECTILE_C2.toString())
         );
 
         this.plotFrame.addDrawable(this.projectile);
@@ -79,7 +84,9 @@ public class ProjectileApp extends AbstractSimulation {
         this.control.setValue(Param.INITIAL_ANGLE.toString(), 45);
         this.control.setValue(Param.INITIAL_VELOCITY.toString(), 15);
         this.control.setValue(Param.PROJECTILE_MASS.toString(), 7);
+        this.control.setValue(Param.PROJECTILE_C2.toString(), 0.1);
         this.control.setValue(Param.USE_DYNAMIC_GRAVITY.toString(), false);
+        this.control.setValue(Param.USE_AIR_EFFECTS.toString(), false);
 
         this.enableStepsPerDisplay(true);
     }
