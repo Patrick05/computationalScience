@@ -28,6 +28,7 @@ public class PendulumFamilyApp extends AbstractSimulation {
 
     private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("Time", "Theta", "Theta versus time");
     private ExtendedPlotFrame phaseFrame = new ExtendedPlotFrame("Omega", "Theta", "Omega vs. Theta");
+    private Area area = new Area();
 
     private Pendulum[] pendulums;
     private double dt;
@@ -59,6 +60,8 @@ public class PendulumFamilyApp extends AbstractSimulation {
 
             this.pendulums[i] = p;
         }
+
+        this.phaseFrame.addDrawable(this.area);
     }
 
     /**
@@ -87,6 +90,8 @@ public class PendulumFamilyApp extends AbstractSimulation {
 
             p.update(this.dt);
         }
+
+        this.area.setPolygon(polygon);
 
         this.control.println("Area: " + polygon.calcArea());
     }
