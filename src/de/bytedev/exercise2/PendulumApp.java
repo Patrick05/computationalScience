@@ -25,7 +25,7 @@ public class PendulumApp extends AbstractSimulation {
     }
 
     private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("Time", "Theta", "Theta versus time");
-    private ExtendedPlotFrame phaseFrame = new ExtendedPlotFrame("Omega", "Theta", "Omega vs. Theta");
+    private ExtendedPlotFrame phaseFrame = new ExtendedPlotFrame("Theta", "Omega", "Omega vs. Theta");
     private DisplayFrame displayFrame = new DisplayFrame("Pendulum");
 
     private Pendulum pendulum;
@@ -52,6 +52,8 @@ public class PendulumApp extends AbstractSimulation {
         this.pendulum.setState(theta, omega);
 
         this.displayFrame.addDrawable(this.pendulum);
+        this.phaseFrame.newPlot();
+        this.plotFrame.newPlot();
     }
 
     /**
