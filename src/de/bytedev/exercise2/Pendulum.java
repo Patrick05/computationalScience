@@ -41,6 +41,15 @@ public class Pendulum implements Drawable, ODE {
     public void update(double dt) {
         this.odeSolver.setStepSize(dt);
         this.odeSolver.step();
+
+        if( this.getTheta() < Math.toRadians(-180) ) {
+            double offset = this.getTheta() % Math.toRadians(-180);
+            this.setTheta(Math.toRadians(180) - offset);
+        }
+        if( this.getTheta() > Math.toRadians(180) ) {
+            double offset = this.getTheta() % Math.toRadians(180);
+            this.setTheta(Math.toRadians(-180) + offset);
+        }
     }
 
     /**
@@ -64,12 +73,30 @@ public class Pendulum implements Drawable, ODE {
     }
 
     /**
+     * Sets the theta value.
+     *
+     * @param theta
+     */
+    public void setTheta(double theta) {
+        this.state[0] = theta;
+    }
+
+    /**
      * Returns the current theta value.
      *
      * @return the current theta value
      */
     public double getTheta() {
         return this.state[0];
+    }
+
+    /**
+     * Sets the omega value.
+     *
+     * @param omega
+     */
+    public void setOmega(double omega) {
+        this.state[1] = omega;
     }
 
     /**
