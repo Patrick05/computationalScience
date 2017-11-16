@@ -1,7 +1,6 @@
 package de.bytedev.exercise3;
 
 import de.bytedev.ui.ExtendedPlotFrame;
-import de.bytedev.utility.Vector2D;
 import de.bytedev.utility.World;
 import org.opensourcephysics.controls.AbstractSimulation;
 import org.opensourcephysics.controls.SimulationControl;
@@ -54,29 +53,25 @@ public class Planet2App extends AbstractSimulation {
     public void initialize() {
         this.dt = this.control.getDouble(Param.TIME_STEP.toString());
 
+        // state[]: x1, vx1, y1, vy1, x2, vx2, y2, vy2, t
         this.planetGroup.setState(
-                new Vector2D(
+                new double[] {
                         this.control.getDouble(Param.X1.toString()),
-                        0
-                ),
-                new Vector2D(
                         0,
-                        this.control.getDouble(Param.VY1.toString())
-                ),
-                new Vector2D(
+                        0,
+                        this.control.getDouble(Param.VY1.toString()),
                         this.control.getDouble(Param.X2.toString()),
-                        0
-                ),
-                new Vector2D(
                         0,
-                        this.control.getDouble(Param.VY2.toString())
-                ),
-                0
+                        0,
+                        this.control.getDouble(Param.VY2.toString()),
+                        0
+                }
         );
 
-        SUN_GRAV_ENABLED = this.control.getInt(Param.ENABLE_SUN_GRAV.toString()) != 0;
-        PLANET_GRAV_ENABLED = this.control.getInt(Param.ENABLE_PLANET_GRAV.toString()) != 0;
+        Planet2App.SUN_GRAV_ENABLED = this.control.getInt(Param.ENABLE_SUN_GRAV.toString()) != 0;
+        Planet2App.PLANET_GRAV_ENABLED = this.control.getInt(Param.ENABLE_PLANET_GRAV.toString()) != 0;
 
+        this.planetGroup.clearDrawables();
         this.frame.clearDrawables();
         this.frame.addDrawable(this.planetGroup);
     }

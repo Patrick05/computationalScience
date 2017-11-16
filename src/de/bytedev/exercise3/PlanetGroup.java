@@ -3,80 +3,84 @@ package de.bytedev.exercise3;
 import de.bytedev.algorithms.ODE;
 import de.bytedev.algorithms.RK45MultiStep;
 import de.bytedev.utility.Vector2D;
-import de.bytedev.utility.World;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.numerics.ODESolver;
 
 import java.awt.*;
 
+/**
+ * This class holds the planets of the planetary system.
+ */
 public class PlanetGroup implements ODE, Drawable {
 
+    public static final double GMsun = 4 * Math.PI * Math.PI;
+
+    /*
+     * The mass of the planets is given by their ratio related to the sun.
+     */
+    public static final double mRatio1 = 1.0E-3;
+    public static final double mRatio2 = 4 * 1.0E-2;
+
+    private Planet sun;
+    private Planet sun2;
     private Planet p1;
     private Planet p2;
+
     private double t;
 
     private ODESolver odeSolver;
 
+    /**
+     * Initialize the planet group.
+     * Creates a sun and two planets.
+     */
     public PlanetGroup() {
-        this.p1 = new Planet(World.GMplanet1);
-        this.p2 = new Planet(World.GMplanet2);
-
-        this.p1.addOtherPlanet(this.p2);
-        this.p2.addOtherPlanet(this.p1);
-
         this.t = 0;
+
+        this.sun = new Planet(1);
+        this.sun2 = new Planet(1);
+        this.sun2.setPosition(-6, 0);
+        this.p1 = new Planet(PlanetGroup.mRatio1);
+        this.p2 = new Planet(PlanetGroup.mRatio2);
+
+        this.p1.addGravityObject(this.sun);
+        this.p1.addGravityObject(this.sun2);
+        this.p1.addGravityObject(this.p2);
+
+        this.p2.addGravityObject(this.sun);
+        this.p2.addGravityObject(this.sun2);
+        this.p2.addGravityObject(this.p1);
 
         this.odeSolver = new RK45MultiStep(this);
     }
 
-    public void setState(Vector2D p1, Vector2D v1, Vector2D p2, Vector2D v2, double t) {
-
-        this.p1.setPosition(
-                p1.getX(),
-                p1.getY()
-        );
-
-        this.p1.setVelocity(
-                v1.getX(),
-                v1.getY()
-        );
-
-        this.p2.setPosition(
-                p2.getX(),
-                p2.getY()
-        );
-
-        this.p2.setVelocity(
-                v2.getX(),
-                v2.getY()
-        );
-
-        this.t = t;
-    }
-
+    /**
+     * Updates the values.
+     *
+     * @param dt the time step
+     */
     public void update(double dt) {
         this.odeSolver.setStepSize(dt);
         this.odeSolver.step();
     }
 
+    public void clearDrawables() {
+        this.sun.getCircle().clear();
+        this.sun.getCircle().clear();
+        this.p1.getCircle().clear();
+        this.p2.getCircle().clear();
+    }
+
     @Override
     public void setState(double[] state) {
-        this.p1.setState(
-                state[0],
-                state[1],
-                state[2],
-                state[3],
-                state[8]
-        );
+        this.p1.setPosition( state[0], state[2] );
+        this.p1.setVelocity( state[1], state[3] );
 
-        this.p2.setState(
-                state[4],
-                state[5],
-                state[6],
-                state[7],
-                state[8]
-        );
+        this.p2.setPosition( state[4], state[6] );
+        this.p2.setVelocity( state[5], state[7] );
+
+        this.t = state[8];
     }
 
     @Override
@@ -97,8 +101,8 @@ public class PlanetGroup implements ODE, Drawable {
     @Override
     public void getRate(double[] state, double[] rate) {
         // state[]: x1, vx1, y1, vy1, x2, vx2, y2, vy2, t
-        Vector2D p1a = this.p1.calcAcceleration();
-        Vector2D p2a = this.p2.calcAcceleration();
+        Vector2D p1a = this.p1.calcAccelerationByGravity();
+        Vector2D p2a = this.p2.calcAccelerationByGravity();
 
         rate[0] = this.p1.getVelocity().getX();
         rate[1] = p1a.getX();
@@ -113,7 +117,9 @@ public class PlanetGroup implements ODE, Drawable {
 
     @Override
     public void draw(DrawingPanel panel, Graphics g) {
-        this.p1.draw(panel, g);
-        this.p2.draw(panel, g);
+        this.sun.getCircle().draw(panel, g);
+        this.sun2.getCircle().draw(panel, g);
+        this.p1.getCircle().draw(panel, g);
+        this.p2.getCircle().draw(panel, g);
     }
 }

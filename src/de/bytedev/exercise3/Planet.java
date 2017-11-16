@@ -1,135 +1,141 @@
 package de.bytedev.exercise3;
 
+import de.bytedev.physics.GravityReceiver;
+import de.bytedev.physics.IGravityObject;
+import de.bytedev.ui.TrailedCircle;
 import de.bytedev.utility.Vector2D;
 import de.bytedev.utility.World;
-import org.opensourcephysics.display.Circle;
-import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
-import org.opensourcephysics.display.Trail;
-import org.opensourcephysics.numerics.ODE;
-import org.opensourcephysics.numerics.ODESolver;
-import org.opensourcephysics.numerics.RK45MultiStep;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Planet implements Drawable {
-    private Vector2D position;
+public class Planet extends GravityReceiver implements IGravityObject {
+
     private Vector2D velocity;
-    private double GM;
+    private double mass;
 
-    private Mass mass = new Mass();
+    private TrailedCircle circle;
 
-    private List<Planet> others;
-
-    public Planet(double GM) {
-        this.GM = GM;
-        this.others = new ArrayList<>();
-
-        this.position = new Vector2D();
+    /**
+     * Default constructor which creates a planet without mass and velocity at (0|0).
+     */
+    public Planet() {
+        super();
+        this.mass = 0;
         this.velocity = new Vector2D();
+
+        this.circle = new TrailedCircle();
     }
 
-    public void setState(double x, double vx, double y, double vy, double t) {
-        this.setPosition(x, y);
-        this.setVelocity(vx, vy);
+    /**
+     * Creates a planet with the given mass but without velocity at (0|0).
+     *
+     * @param mass the mass of the planet
+     */
+    public Planet(double mass) {
+        super();
+        this.mass = mass;
+        this.velocity = new Vector2D();
 
-        this.mass.setXY( this.getPosition().getX(), this.getPosition().getY() );
+        this.circle = new TrailedCircle();
     }
 
+    /**
+     * Creates a planet with the given mass, velocity at the given position.
+     *
+     * @param mass the mass of the planet
+     * @param position the initial position of the planet
+     * @param velocity the initial velocity of the planet
+     */
+    public Planet(double mass, Vector2D position, Vector2D velocity) {
+        super(position);
+        this.mass = mass;
+        this.velocity = velocity;
+
+        this.circle = new TrailedCircle(position.getX(), position.getY());
+    }
+
+    /**
+     * Returns the mass of the planet.
+     *
+     * @return the mass of the planet
+     */
+    @Override
+    public double getMass() {
+        return this.mass;
+    }
+
+    /**
+     * Sets the mass of the planet by the given value.
+     *
+     * @param mass the new mass of the planet
+     */
+    public void setMass(double mass) {
+        this.mass = mass;
+    }
+
+    /**
+     * Sets the position of the planet.
+     *
+     * @param position the position of the planet
+     */
+    public void setPosition(Vector2D position) {
+        super.setPosition(position);
+        this.circle.setXY(position.getX(), position.getY());
+    }
+
+    /**
+     * Sets the position of the planet.
+     *
+     * @param x the x-coordinate of the planet position
+     * @param y the y-coordinate of the planet position
+     */
     public void setPosition(double x, double y) {
-        this.position = new Vector2D(x, y);
+        super.setPosition(x, y);
+        this.circle.setXY(x, y);
     }
 
-    public void setVelocity(double x, double y) {
-        this.velocity = new Vector2D(x, y);
-    }
-
-    public Vector2D getPosition() {
-        return this.position;
-    }
-
+    /**
+     * Returns the velocity of the planet.
+     *
+     * @return the current velocity
+     */
     public Vector2D getVelocity() {
         return this.velocity;
     }
 
-    public double getGM() {
-        return this.GM;
-    }
-
-
-    public void addOtherPlanet(Planet o) {
-        this.others.add(o);
-    }
-
-    public Vector2D calcAccelerationBySun() {
-        Vector2D r = this.getPosition();
-        r.mul(- World.GMsun / Math.pow(r.getLength(), 3) );
-        return r;
-    }
-
-    public Vector2D calcAccelerationByPlanet(int index) {
-        Planet other = this.others.get(index);
-
-        Vector2D r = Vector2D.sub( this.getPosition(), other.getPosition() );
-        r.mul( - this.getGM() / Math.pow(r.getLength(), 3) );
-        return r;
-    }
-
-    public Vector2D calcAcceleration() {
-        Vector2D a = new Vector2D();
-
-        if(Planet2App.SUN_GRAV_ENABLED) {
-            a.add( this.calcAccelerationBySun() );
-        }
-
-        if(Planet2App.PLANET_GRAV_ENABLED) {
-            for(int i = 0; i < this.others.size(); i++ ) {
-                a.add(this.calcAccelerationByPlanet(i));
-            }
-        }
-
-        return a;
-    }
-
-    public void draw(DrawingPanel panel, Graphics g) {
-        this.mass.draw(panel, g);
+    /**
+     * Sets the velocity of the planet.
+     *
+     * @param velocity the velocity vector
+     */
+    public void setVelocity(Vector2D velocity) {
+        this.velocity = velocity;
     }
 
     /**
-     * Class Mass
+     * Sets the velocity of the planet.
+     *
+     * @param x the velocity in x-direction
+     * @param y the velocity in y-direction
      */
-    class Mass extends Circle {
-        Trail trail = new Trail();
+    public void setVelocity(double x, double y) {
+        this.velocity = new Vector2D(x, y);
+    }
 
-        /**
-         * Draws the mass
-         *
-         * @param panel
-         * @param g
-         */
-        public void draw(DrawingPanel panel, Graphics g) {
-            trail.draw(panel, g);
-            super.draw(panel, g);
-        }
+    /**
+     * Returns the TrailedCircle-drawable.
+     *
+     * @return the trailed circle
+     */
+    public TrailedCircle getCircle() {
+        return circle;
+    }
 
-        /**
-         * Clears the trail.
-         */
-        void clear() {
-            trail.clear();
-        }
-
-        /**
-         * Sets the postion and adds to the trail.
-         *
-         * @param x
-         * @param y
-         */
-        public void setXY(double x, double y) {
-            super.setXY(x, y);
-            trail.addPoint(x, y);
-        }
+    @Deprecated
+    public void setState(double x, double vx, double y, double vy) {
+        this.setPosition(x, y);
+        this.setVelocity(vx, vy);
+        //this.mass.setXY( this.getPosition().getX(), this.getPosition().getY() );
     }
 }
