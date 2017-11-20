@@ -1,5 +1,6 @@
 package de.bytedev.physics;
 
+import de.bytedev.exercise3.PlanetGroup;
 import de.bytedev.utility.Vector2D;
 
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ public class GravityReceiver {
 
     private Vector2D position;
     private List<IGravityObject> gravityObjects;
-    private double GMsun = 4 * Math.PI * Math.PI;
 
     /**
      * Default constructor
@@ -83,6 +83,15 @@ public class GravityReceiver {
     }
 
     /**
+     * Returns the list of gravity objects.
+     *
+     * @return
+     */
+    public List<IGravityObject> getGravityObjects() {
+        return this.gravityObjects;
+    }
+
+    /**
      * Calculates the acceleration of the GravityReceiver by the gravity objects.
      *
      * @return the acceleration vector
@@ -92,7 +101,7 @@ public class GravityReceiver {
 
         for( IGravityObject gravityObject : this.gravityObjects ) {
             Vector2D r = Vector2D.sub( this.getPosition(), gravityObject.getPosition() );
-            r.mul( - gravityObject.getMass() * this.GMsun / Math.pow(r.getLength(), 3) );
+            r.mul( - gravityObject.getMass() * PlanetGroup.GMsun / Math.pow(r.getLength(), 3) );
             a.add(r);
         }
 

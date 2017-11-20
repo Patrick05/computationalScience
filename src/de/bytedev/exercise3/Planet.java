@@ -1,15 +1,16 @@
 package de.bytedev.exercise3;
 
 import de.bytedev.physics.GravityReceiver;
+import de.bytedev.physics.IEnergySystem;
 import de.bytedev.physics.IGravityObject;
 import de.bytedev.ui.TrailedCircle;
 import de.bytedev.utility.Vector2D;
-import de.bytedev.utility.World;
-import org.opensourcephysics.display.DrawingPanel;
+import de.bytedev.utility.Vector3D;
 
 import java.awt.*;
+import java.util.List;
 
-public class Planet extends GravityReceiver implements IGravityObject {
+public class Planet extends GravityReceiver implements IGravityObject, IEnergySystem {
 
     private Vector2D velocity;
     private double mass;
@@ -56,9 +57,7 @@ public class Planet extends GravityReceiver implements IGravityObject {
     }
 
     /**
-     * Returns the mass of the planet.
-     *
-     * @return the mass of the planet
+     * {@inheritDoc}
      */
     @Override
     public double getMass() {
@@ -124,6 +123,15 @@ public class Planet extends GravityReceiver implements IGravityObject {
     }
 
     /**
+     * Sets the color of the TrailedCircle-drawable.
+     *
+     * @param c
+     */
+    public void setCircleColor(Color c) {
+        this.circle.color = c;
+    }
+
+    /**
      * Returns the TrailedCircle-drawable.
      *
      * @return the trailed circle
@@ -132,10 +140,51 @@ public class Planet extends GravityReceiver implements IGravityObject {
         return circle;
     }
 
+    /**
+     * Calculates the angular momentum of the planet.
+     *
+     * @return
+     */
+    public Vector3D calcAngularMomentum() {
+        Vector3D pos3d = new Vector3D(this.getPosition());
+        Vector3D vel3d = new Vector3D(this.getVelocity());
+
+        return Vector3D.cross(
+                pos3d,
+                Vector3D.mul(vel3d, this.getMass())
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getPotentialEnergy() {
+        List<IGravityObject> gravityObjectList = this.getGravityObjects();
+        double potEnergy = 0;
+
+        for(IGravityObject gravityObject : gravityObjectList) {
+            potEnergy -= (gravityObject.getMass() * PlanetGroup.GMsun * this.getMass()) / this.getPosition().getLength();
+        }
+
+        return potEnergy;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double getKineticEnergy() {
+        Vector2D v = this.getVelocity();
+        return 0.5 * this.getMass() * (Math.pow(v.getX(), 2) + Math.pow(v.getY(),2));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Deprecated
     public void setState(double x, double vx, double y, double vy) {
         this.setPosition(x, y);
         this.setVelocity(vx, vy);
-        //this.mass.setXY( this.getPosition().getX(), this.getPosition().getY() );
     }
 }

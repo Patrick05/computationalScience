@@ -8,6 +8,8 @@ import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.numerics.ODESolver;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class holds the planets of the planetary system.
@@ -22,10 +24,8 @@ public class PlanetGroup implements ODE, Drawable {
     public static final double mRatio1 = 1.0E-3;
     public static final double mRatio2 = 4 * 1.0E-2;
 
-    private Planet sun;
-    private Planet sun2;
-    private Planet p1;
-    private Planet p2;
+    private List<Planet> planets;
+    private List<Planet> suns;
 
     private double t;
 
@@ -38,21 +38,90 @@ public class PlanetGroup implements ODE, Drawable {
     public PlanetGroup() {
         this.t = 0;
 
-        this.sun = new Planet(1);
-        this.sun2 = new Planet(1);
-        this.sun2.setPosition(-6, 0);
-        this.p1 = new Planet(PlanetGroup.mRatio1);
-        this.p2 = new Planet(PlanetGroup.mRatio2);
+        this.planets = new ArrayList<>();
+        this.suns = new ArrayList<>();
+    }
 
-        this.p1.addGravityObject(this.sun);
-        this.p1.addGravityObject(this.sun2);
-        this.p1.addGravityObject(this.p2);
-
-        this.p2.addGravityObject(this.sun);
-        this.p2.addGravityObject(this.sun2);
-        this.p2.addGravityObject(this.p1);
-
+    /**
+     * Initialize ODE solver
+     */
+    public void initialize() {
         this.odeSolver = new RK45MultiStep(this);
+    }
+
+    /**
+     * Returns the planet with the index.
+     *
+     * @param index
+     * @return
+     */
+    public Planet getPlanet(int index) {
+        return this.planets.get(index);
+    }
+
+    /**
+     * Adds a planet with the given mass to the planet group.
+     *
+     * @param mass
+     */
+    public void addPlanet(double mass) {
+        this.addPlanet(mass, Color.BLUE);
+    }
+
+    /**
+     * Adds a planet with the given mass and color to the planet group.
+     *
+     * @param mass
+     * @param color
+     */
+    public void addPlanet(double mass, Color color) {
+        Planet p = new Planet(mass);
+        p.setCircleColor(color);
+
+        for(Planet o : this.planets) {
+            o.addGravityObject(p);
+            p.addGravityObject(o);
+        }
+
+        for(Planet o : this.suns) {
+            p.addGravityObject(o);
+        }
+
+        this.planets.add(p);
+    }
+
+    /**
+     * Adds a sun with the given mass to the planet group.
+     *
+     * @param mass
+     */
+    public void addSun(double mass) {
+        Planet s = new Planet(mass);
+        s.setCircleColor(Color.RED);
+
+        for(Planet o : this.planets) {
+            o.addGravityObject(s);
+        }
+
+        this.suns.add(s);
+    }
+
+    /**
+     * Adds a sun with the given mass and position to the planet group.
+     *
+     * @param mass
+     * @param pos
+     */
+    public void addSun(double mass, Vector2D pos) {
+        Planet s = new Planet(mass);
+        s.setPosition(pos);
+        s.setCircleColor(Color.ORANGE);
+
+        for(Planet o : this.planets) {
+            o.addGravityObject(s);
+        }
+
+        this.suns.add(s);
     }
 
     /**
@@ -65,61 +134,82 @@ public class PlanetGroup implements ODE, Drawable {
         this.odeSolver.step();
     }
 
+    /**
+     * Clear all drawables.
+     */
     public void clearDrawables() {
-        this.sun.getCircle().clear();
-        this.sun.getCircle().clear();
-        this.p1.getCircle().clear();
-        this.p2.getCircle().clear();
+        for (Planet s : this.suns) {
+            s.getCircle().clear();
+        }
+
+        for(Planet p : this.planets) {
+            p.getCircle().clear();
+        }
     }
 
     @Override
     public void setState(double[] state) {
-        this.p1.setPosition( state[0], state[2] );
-        this.p1.setVelocity( state[1], state[3] );
 
-        this.p2.setPosition( state[4], state[6] );
-        this.p2.setVelocity( state[5], state[7] );
+        for (int i = 0; i < this.planets.size(); i++) {
+            Planet p = this.planets.get(i);
+            int j = 4*i;
 
-        this.t = state[8];
+            p.setPosition( state[j], state[j+2] );
+            p.setVelocity( state[j+1], state[j+3] );
+        }
+
+        this.t = state[4 * this.planets.size()];
     }
 
     @Override
     public double[] getState() {
-        return new double[] {
-                this.p1.getPosition().getX(),
-                this.p1.getVelocity().getX(),
-                this.p1.getPosition().getY(),
-                this.p1.getVelocity().getY(),
-                this.p2.getPosition().getX(),
-                this.p2.getVelocity().getX(),
-                this.p2.getPosition().getY(),
-                this.p2.getVelocity().getY(),
-                this.t
-        };
+        double[] state = new double[4 * this.planets.size() + 1];
+
+        for (int i = 0; i < this.planets.size(); i++) {
+            Planet p = this.planets.get(i);
+            int j = 4*i;
+
+            state[j] = p.getPosition().getX();
+            state[j+1] = p.getVelocity().getX();
+            state[j+2] = p.getPosition().getY();
+            state[j+3] = p.getVelocity().getY();
+        }
+
+        state[4 * this.planets.size()] = this.t;
+
+        return state;
     }
 
     @Override
     public void getRate(double[] state, double[] rate) {
-        // state[]: x1, vx1, y1, vy1, x2, vx2, y2, vy2, t
-        Vector2D p1a = this.p1.calcAccelerationByGravity();
-        Vector2D p2a = this.p2.calcAccelerationByGravity();
 
-        rate[0] = this.p1.getVelocity().getX();
-        rate[1] = p1a.getX();
-        rate[2] = this.p1.getVelocity().getY();
-        rate[3] = p1a.getY();
-        rate[4] = this.p2.getVelocity().getX();
-        rate[5] = p2a.getX();
-        rate[6] = this.p2.getVelocity().getY();
-        rate[7] = p2a.getY();
-        rate[8] = 1;
+        for (int i = 0; i < this.planets.size(); i++) {
+            Planet p = this.planets.get(i);
+            Vector2D a = p.calcAccelerationByGravity();
+            int j = 4*i;
+
+            rate[j] = p.getVelocity().getX();
+            rate[j+1] = a.getX();
+            rate[j+2] = p.getVelocity().getY();
+            rate[j+3] = a.getY();
+        }
+
+        state[4 * this.planets.size()] = 1;
+    }
+
+    public double getTime() {
+        System.out.println(this.t);
+        return this.t;
     }
 
     @Override
     public void draw(DrawingPanel panel, Graphics g) {
-        this.sun.getCircle().draw(panel, g);
-        this.sun2.getCircle().draw(panel, g);
-        this.p1.getCircle().draw(panel, g);
-        this.p2.getCircle().draw(panel, g);
+        for (Planet s : this.suns) {
+            s.getCircle().draw(panel, g);
+        }
+
+        for(Planet p : this.planets) {
+            p.getCircle().draw(panel, g);
+        }
     }
 }
