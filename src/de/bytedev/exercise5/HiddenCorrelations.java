@@ -49,6 +49,7 @@ public class HiddenCorrelations extends AbstractSimulation {
 
         this.queue = new LinkedBlockingDeque<>();
         this.plotFrame.newPlot();
+        this.plotFrame.setConnected(false);
     }
 
     @Override
