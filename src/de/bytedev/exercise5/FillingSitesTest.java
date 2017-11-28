@@ -28,7 +28,7 @@ public class FillingSitesTest extends AbstractSimulation {
         }
     }
 
-    private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("n", "t", "FillingSitesTest");
+    private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("t", "n", "FillingSitesTest");
     private Scalar2DFrame fillingFrame = new Scalar2DFrame("x", "y", "FillingSitesTest");
 
     private LinearCongurentialRandom random;
@@ -74,7 +74,7 @@ public class FillingSitesTest extends AbstractSimulation {
 
         if( this.square[x][y] == 0 ) {
             this.square[x][y] = 255;
-            this.plotFrame.append(1, this.foundIndex, this.t);
+            this.plotFrame.append(1, this.t, this.l*this.l - this.foundIndex);
             this.foundIndex++;
 
             this.fillingFrame.setAll(this.square);
