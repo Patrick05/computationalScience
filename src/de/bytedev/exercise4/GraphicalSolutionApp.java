@@ -24,6 +24,10 @@ public class GraphicalSolutionApp extends AbstractSimulation {
     double x, y;
     double x0, y0;
 
+    double lastValue;
+    double delta;
+    int steps;
+
     public GraphicalSolutionApp() {
         //plotFrame.setPreferredMinMax(0, 1, 0, 1);
         plotFrame.setConnected(true);
@@ -32,18 +36,24 @@ public class GraphicalSolutionApp extends AbstractSimulation {
         plotFrame.setMarkerShape(2, 0);
     }
 
+    @Override
     public void reset() {
         control.setValue("r", 0.89);
         control.setValue("x", 0.2);
+        control.setValue("delta", 0.0001);
         control.setAdjustableValue("iterate", 1);
     }
 
+    @Override
     public void initialize() {
         r = control.getDouble("r");
         x = control.getDouble("x");
         iterate = control.getInt("iterate");
         x0 = x;
         y0 = 0;
+        this.lastValue = 0;
+        this.steps = 0;
+        this.delta = this.control.getDouble("delta");
         clear();
     }
 
@@ -62,6 +72,14 @@ public class GraphicalSolutionApp extends AbstractSimulation {
         plotFrame.append(1, y, y);
         x = x0 = y0 = y;
         control.setValue("x", x);
+
+        this.steps++;
+
+        if( Math.abs(this.lastValue - x) < this.delta ) {
+            this.control.calculationDone("x value reached in "+this.steps+" steps.");
+        }
+
+        this.lastValue = x;
     }
 
     void drawFunction() {
@@ -73,9 +91,7 @@ public class GraphicalSolutionApp extends AbstractSimulation {
         for (int i = 0; i <= nplot; i++) {
             y = f(x, r, iterate);
             dy = df(x, r, iterate);
-            System.out.println(dy);
             plotFrame.append(0, x, y);
-            plotFrame.append(3, x, dy);
             x += delta;
         }
     }
