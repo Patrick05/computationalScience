@@ -1,6 +1,5 @@
 package de.bytedev.exercise6;
 
-import de.bytedev.utility.Vector2D;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
 
@@ -20,6 +19,10 @@ public class Walker2D implements Drawable {
         for(int i=0; i<amount; i++) {
             this.addWalker();
         }
+    }
+
+    public List<Walker> getWalkers() {
+        return this.walkers;
     }
 
     public void moveRandomly() {

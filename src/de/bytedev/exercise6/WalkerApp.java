@@ -1,8 +1,12 @@
 package de.bytedev.exercise6;
 
 import de.bytedev.ui.ExtendedPlotFrame;
+import de.bytedev.utility.Vector2D;
 import org.opensourcephysics.controls.AbstractSimulation;
 import org.opensourcephysics.controls.SimulationControl;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class WalkerApp extends AbstractSimulation {
     enum Param {
@@ -24,7 +28,10 @@ public class WalkerApp extends AbstractSimulation {
     private Walker2D walker2D;
     private ExtendedPlotFrame walkerFrame = new ExtendedPlotFrame("x", "y", "WalkerFrame");
     private ExtendedPlotFrame avgFrame = new ExtendedPlotFrame("N", "avg", "AverageFrame");
+    private ExtendedPlotFrame latticeFrame = new ExtendedPlotFrame("step", "visited points", "LatticeFrame");
     private int steps;
+
+    private List<Vector2D> latticeList;
 
     @Override
     public void reset() {
@@ -42,6 +49,8 @@ public class WalkerApp extends AbstractSimulation {
         this.walker2D.addWalkers(
                 this.control.getInt(Param.WALKERS.toString())
         );
+
+        this.latticeList = new ArrayList<>();
 
         this.walkerFrame.addDrawable(this.walker2D);
         this.walkerFrame.setPreferredMinMax(-100, 100, -100, 100);
@@ -63,8 +72,25 @@ public class WalkerApp extends AbstractSimulation {
         this.avgFrame.append(0, this.steps, avgX);
         this.avgFrame.append(1, this.steps, avgY);
         this.avgFrame.append(2, this.steps, avgRSquared);
+        this.avgFrame.append(3, this.steps, avgXSquared);
+        this.avgFrame.append(4, this.steps, avgYSquared);
 
+        for(Walker walker : this.walker2D.getWalkers()) {
+            boolean isInList = false;
 
+            for(Vector2D latticePoint : this.latticeList) {
+                if(walker.getPosition().getX() == latticePoint.getX() &&
+                   walker.getPosition().getY() == latticePoint.getY() ) {
+                    isInList = true;
+                }
+            }
+
+            if(!isInList) {
+                this.latticeList.add(walker.getPosition());
+            }
+        }
+
+        this.latticeFrame.append(this.steps, this.latticeList.size());
 
         this.steps++;
     }
