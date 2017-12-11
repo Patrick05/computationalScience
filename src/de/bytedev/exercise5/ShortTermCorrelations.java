@@ -12,7 +12,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 
 public class ShortTermCorrelations extends AbstractSimulation {
     enum Param {
-        K("k"),
+        K_MAX("max k"),
+        N("N"),
         A("a"),
         C("c"),
         M("m"),
@@ -34,13 +35,10 @@ public class ShortTermCorrelations extends AbstractSimulation {
     private ExtendedPlotFrame plotFrame = new ExtendedPlotFrame("interval", "C(k)", "ShortTermCorrelations");
 
     private LinearCongurentialRandom random;
-    private int k;
-    private Queue<Double> queue;
-    private int i;
-
-    private double xiSum;
-    private double xiSquaredSum;
-    private double xikxiSum;
+    private int kMax;
+    private int kCur;
+    private int N;
+    private double[] randomList;
 
     @Override
     public void initialize() {
@@ -51,43 +49,50 @@ public class ShortTermCorrelations extends AbstractSimulation {
                 this.control.getInt(Param.M.toString())
         );
 
-        this.k = this.control.getInt(Param.K.toString());
+        this.N = this.control.getInt(Param.N.toString());
+        this.kMax = this.control.getInt(Param.K_MAX.toString());
+        this.kCur = 0;
 
-        this.i = 1;
-        this.xiSum = 0;
-        this.xiSquaredSum = 0;
-        this.xikxiSum = 0;
+        this.randomList = new double[this.N];
+        for(int i=0; i<N; i++) {
+            this.randomList[i] = this.random.nextDouble();
+        }
 
-        this.queue = new LinkedBlockingDeque<>();
         this.plotFrame.newPlot();
     }
 
     @Override
     protected void doStep() {
-        double xik = this.random.nextDouble();
-        this.queue.add(xik);
-
-        if(this.queue.size() > this.k) {
-            double xi = this.queue.poll();
-
-            this.xiSum += xi;
-            this.xiSquaredSum += xi*xi;
-            this.xikxiSum += xik*xi;
-
-            double avgXikxi = this.xikxiSum / this.i;
-            double avgXi = this.xiSum / this.i;
-            double avgXiSquared = this.xiSquaredSum / this.i;
-
-            double ck = (avgXikxi - Math.pow(avgXi,2))/(avgXiSquared - Math.pow(avgXi,2));
-
-            this.plotFrame.append(this.i, ck);
-            this.i++;
+        if(this.kCur >= this.kMax) {
+            this.control.calculationDone("DONE!");
         }
+        this.plotFrame.append(this.kCur, this.autocorrelation(this.kCur, this.randomList));
+        this.kCur++;
+    }
+
+    public double autocorrelation(int k, double[] numbers) {
+        double n = numbers.length - k;
+        double xiSum = 0;
+        double xiSquaredSum = 0;
+        double xikxiSum = 0;
+
+        for(int i = 0; i < n; i++) {
+            xiSum += numbers[i];
+            xiSquaredSum += Math.pow(numbers[i], 2);
+            xikxiSum += numbers[i]*numbers[i+k];
+        }
+
+        double xiAvg = xiSum/n;
+        double xiSquaredAvg = xiSquaredSum/n;
+        double xikxiAvg = xikxiSum/n;
+
+        return (xikxiAvg - Math.pow(xiAvg, 2))/(xiSquaredAvg - Math.pow(xiAvg, 2));
     }
 
     @Override
     public void reset() {
-        this.control.setValue(Param.K.toString(), 1);
+        this.control.setValue(Param.N.toString(), 1000);
+        this.control.setValue(Param.K_MAX.toString(), 20);
         this.control.setValue(Param.A.toString(), 106);
         this.control.setValue(Param.C.toString(), 1283);
         this.control.setValue(Param.M.toString(), 6075);
