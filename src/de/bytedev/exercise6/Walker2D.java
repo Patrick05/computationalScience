@@ -1,5 +1,6 @@
 package de.bytedev.exercise6;
 
+import de.bytedev.statistics.Walker;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
 

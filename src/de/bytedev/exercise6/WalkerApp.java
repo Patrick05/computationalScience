@@ -1,5 +1,6 @@
 package de.bytedev.exercise6;
 
+import de.bytedev.statistics.Walker;
 import de.bytedev.ui.ExtendedPlotFrame;
 import de.bytedev.utility.Vector2D;
 import org.opensourcephysics.controls.AbstractSimulation;
