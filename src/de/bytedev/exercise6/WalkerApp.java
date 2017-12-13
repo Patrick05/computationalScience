@@ -29,6 +29,7 @@ public class WalkerApp extends AbstractSimulation {
     private ExtendedPlotFrame walkerFrame = new ExtendedPlotFrame("x", "y", "WalkerFrame");
     private ExtendedPlotFrame avgFrame = new ExtendedPlotFrame("N", "avg", "AverageFrame");
     private ExtendedPlotFrame latticeFrame = new ExtendedPlotFrame("step", "visited points", "LatticeFrame");
+    private ExtendedPlotFrame rFrame = new ExtendedPlotFrame("step", "R", "R Frame");
     private int steps;
 
     private List<Vector2D> latticeList;
@@ -58,6 +59,8 @@ public class WalkerApp extends AbstractSimulation {
 
     @Override
     protected void doStep() {
+        this.steps++;
+
         this.walker2D.moveRandomly();
 
         this.walkerFrame.setMessage("Current Step: "+this.steps);
@@ -67,13 +70,14 @@ public class WalkerApp extends AbstractSimulation {
         double avgXSquared = this.walker2D.calcAvgXSquared();
         double avgYSquared = this.walker2D.calcAvgYSquared();
         double avgRSquared = avgXSquared - Math.pow(avgX, 2) + avgYSquared - Math.pow(avgY, 2);
-
+        double r = Math.sqrt(avgRSquared);
 
         this.avgFrame.append(0, this.steps, avgX);
         this.avgFrame.append(1, this.steps, avgY);
         this.avgFrame.append(2, this.steps, avgRSquared);
         this.avgFrame.append(3, this.steps, avgXSquared);
         this.avgFrame.append(4, this.steps, avgYSquared);
+        this.rFrame.append(this.steps, avgRSquared);
 
         for(Walker walker : this.walker2D.getWalkers()) {
             boolean isInList = false;
@@ -92,7 +96,7 @@ public class WalkerApp extends AbstractSimulation {
 
         this.latticeFrame.append(this.steps, this.latticeList.size());
 
-        this.steps++;
+        this.control.println("<R²> = "+avgRSquared+" for N = " + this.steps);
     }
 
     public static void main(String[] args) {
