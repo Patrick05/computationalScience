@@ -20,6 +20,15 @@ public class Vector2D {
     }
 
     /**
+     * Copy constructor
+     *
+     * @param vector2D
+     */
+    public Vector2D(Vector2D vector2D) {
+        this(vector2D.getX(), vector2D.getY());
+    }
+
+    /**
      * Zero-Constructor. Creates a vector without dimension or orientation.
      */
     public Vector2D() {
@@ -122,5 +131,13 @@ public class Vector2D {
                 a.getX() * v,
                 a.getY() * v
         );
+    }
+
+    /**
+     * Resets the vector to origin (0|0)
+     */
+    public void setToOrigin() {
+        this.x = 0;
+        this.y = 0;
     }
 }
