@@ -25,16 +25,14 @@ public class SimpleSelfAvoidingWalk extends AbstractSimulation {
 
     protected Walker walker;
     protected ExtendedPlotFrame walkerFrame = new ExtendedPlotFrame("x", "y", "WalkerFrame");
+    protected ExtendedPlotFrame ratioFrame = new ExtendedPlotFrame("n", "%", "RatioFrame");
+    protected ExtendedPlotFrame rFrame = new ExtendedPlotFrame("n", "r2", "RFrame");
 
     protected int N;
+    protected int currentN;
     protected int nrTests;
     protected int currentTest;
     protected int successfulTests;
-
-    protected double xSum;
-    protected double xSquaredSum;
-    protected double ySum;
-    protected double ySquaredSum;
 
     @Override
     public void reset() {
@@ -42,6 +40,8 @@ public class SimpleSelfAvoidingWalk extends AbstractSimulation {
 
         this.walkerFrame.clearData();
         this.walkerFrame.clearDrawables();
+        this.ratioFrame.clearData();
+        this.rFrame.clearData();
 
         this.control.setValue(Param.N.toString(), 1000);
         this.control.setValue(Param.NR_TESTS.toString(), 1000);
@@ -56,25 +56,42 @@ public class SimpleSelfAvoidingWalk extends AbstractSimulation {
         this.walkerFrame.setPreferredMinMax(-15, 15, -15, 15);
 
         this.N = this.control.getInt(Param.N.toString());
+        this.currentN = 1;
         this.nrTests = this.control.getInt(Param.NR_TESTS.toString());
         this.currentTest = 0;
         this.successfulTests = 0;
-
-        this.xSum = 0;
-        this.xSquaredSum = 0;
-        this.ySum = 0;
-        this.ySquaredSum = 0;
     }
 
     @Override
     protected void doStep() {
+        int countSuccessful = 0;
+        double r2Sum = 0;
+        for(int j = 0; j < this.nrTests; j++) {
+            this.walkerFrame.setMessage("currentTest = "+j);
+            if( this.letsWalk(this.currentN) ) {
+                r2Sum += Math.pow(this.walker.getPosition().getLength(), 2);
+                countSuccessful++;
+            }
+        }
+
+        this.ratioFrame.append(this.currentN, (1.0*countSuccessful)/this.nrTests);
+        this.rFrame.append(this.currentN, r2Sum/this.nrTests);
+
+        if(this.currentN == this.N) {
+            this.control.calculationDone("DONE!");
+        }
+
+        this.currentN++;
+    }
+
+    public boolean letsWalk(int n) {
         this.walker.reset();
         this.walkerFrame.clearData();
         this.walkerFrame.clearDrawables();
 
         boolean successful = true;
 
-        for(int i=0; i<this.N; i++) {
+        for(int i=0; i<n; i++) {
             if(this.walker.getHistory().size() > 0) {
                 this.walker.moveRandomlyAvoiding(this.walker.getHistory().get(this.walker.getHistory().size()-1));
             } else {
@@ -98,30 +115,7 @@ public class SimpleSelfAvoidingWalk extends AbstractSimulation {
             if(!successful) break;
         }
 
-        if(successful) {
-            this.successfulTests++;
-        }
-
-        this.xSum += this.walker.getPosition().getX();
-        this.xSquaredSum += Math.pow(this.walker.getPosition().getX(), 2);
-        this.ySum += this.walker.getPosition().getY();
-        this.ySquaredSum += Math.pow(this.walker.getPosition().getY(), 2);
-
-        this.currentTest++;
-        this.walkerFrame.setMessage("currentTest = "+this.currentTest);
-
-        if(this.currentTest == this.nrTests) {
-            double avgX = this.xSum/this.nrTests;
-            double avgXSquared = this.xSquaredSum/this.nrTests;
-            double avgY = this.ySum/this.nrTests;
-            double avgYSquared = this.ySquaredSum/this.nrTests;
-
-            this.control.calculationDone(
-                    "DONE!\n"+
-                    this.successfulTests+ " / "+this.nrTests+" are successful! ("+(1.0*this.successfulTests)/this.nrTests+")\n"+
-                    "<R²> = "+(avgXSquared - Math.pow(avgX, 2) + avgYSquared - Math.pow(avgY, 2))
-            );
-        }
+        return successful;
     }
 
     public static void main(String[] args) {

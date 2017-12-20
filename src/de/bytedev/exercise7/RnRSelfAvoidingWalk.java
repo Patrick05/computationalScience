@@ -7,32 +7,45 @@ import org.opensourcephysics.controls.SimulationControl;
 
 public class RnRSelfAvoidingWalk extends SimpleSelfAvoidingWalk {
 
-    protected double weightedRSum;
-    protected double weightSum;
 
     @Override
     public void initialize() {
         super.initialize();
-
-        this.weightedRSum = 0;
-        this.weightSum = 0;
     }
 
     @Override
     protected void doStep() {
+        int countSuccessful = 0;
+        double r2Sum = 0;
+        for(int j = 0; j < this.nrTests; j++) {
+            this.walkerFrame.setMessage("currentTest = "+j);
+
+            double r2 = this.letsRnRWalk(this.currentN);
+            if(r2 > 0.0) {
+                r2Sum += r2;
+                countSuccessful++;
+            }
+        }
+
+        this.ratioFrame.append(this.currentN, (1.0*countSuccessful)/this.nrTests);
+        this.rFrame.append(this.currentN, r2Sum/this.nrTests);
+
+        if(this.currentN == this.N) {
+            this.control.calculationDone("DONE!");
+        }
+
+        this.currentN++;
+    }
+
+    public double letsRnRWalk(int n) {
         this.walker.reset();
         this.walkerFrame.clearData();
         this.walkerFrame.clearDrawables();
 
-        this.xSum = 0;
-        this.xSquaredSum = 0;
-        this.ySum = 0;
-        this.ySquaredSum = 0;
-        this.weightedRSum = 0;
-        this.weightSum = 0;
-        this.currentTest++;
+        double weightRSum = 0;
+        double weightSum = 0;
 
-        for(int i=1; i<=this.N; i++) {
+        for(int i=1; i<=n; i++) {
             double weight = 1;
 
             if(this.walker.getHistory().size() > 0) {
@@ -45,29 +58,21 @@ public class RnRSelfAvoidingWalk extends SimpleSelfAvoidingWalk {
 
             if(this.walker.getHistory().size() > 2) {
                 if( this.walker.getPosition().getX() == this.walker.getHistory().get(this.walker.getHistory().size()-2).getX() &&
-                    this.walker.getPosition().getY() == this.walker.getHistory().get(this.walker.getHistory().size()-2).getY()) {
+                        this.walker.getPosition().getY() == this.walker.getHistory().get(this.walker.getHistory().size()-2).getY()) {
                     break;
                 }
             }
 
-            this.xSum += this.walker.getPosition().getX();
-            this.xSquaredSum += Math.pow(this.walker.getPosition().getX(), 2);
-            this.ySum += this.walker.getPosition().getY();
-            this.ySquaredSum += Math.pow(this.walker.getPosition().getY(), 2);
+            // break if the walker runs into a dead end
+            if(weight == 0) {
+                return 0.0;
+            }
 
-            this.weightSum += weight;
-
-            double avgX = this.xSum/i;
-            double avgXSquared = this.xSquaredSum/i;
-            double avgY = this.ySum/i;
-            double avgYSquared = this.ySquaredSum/i;
-
-            this.weightedRSum = weight*(avgXSquared - Math.pow(avgX, 2) + avgYSquared - Math.pow(avgY, 2));
+            weightSum += weight;
+            weightRSum += weight * Math.pow(this.walker.getPosition().getLength(),2);
         }
 
-        this.walkerFrame.setMessage("currentTest = "+this.currentTest);
-
-        this.control.calculationDone("DONE!\n<R²> = "+(this.weightedRSum/this.weightSum));
+        return weightRSum/weightSum;
     }
 
     public static void main(String[] args) {
