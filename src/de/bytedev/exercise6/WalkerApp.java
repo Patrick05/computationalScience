@@ -30,7 +30,7 @@ public class WalkerApp extends AbstractSimulation {
     private ExtendedPlotFrame walkerFrame = new ExtendedPlotFrame("x", "y", "WalkerFrame");
     private ExtendedPlotFrame avgFrame = new ExtendedPlotFrame("N", "avg", "AverageFrame");
     private ExtendedPlotFrame latticeFrame = new ExtendedPlotFrame("step", "visited points", "LatticeFrame");
-    private ExtendedPlotFrame rFrame = new ExtendedPlotFrame("step", "R", "R Frame");
+    private ExtendedPlotFrame rFrame = new ExtendedPlotFrame("log(step)", "log(R2)", "R2 Frame");
     private int steps;
 
     private List<Vector2D> latticeList;
@@ -78,7 +78,7 @@ public class WalkerApp extends AbstractSimulation {
         this.avgFrame.append(2, this.steps, avgRSquared);
         this.avgFrame.append(3, this.steps, avgXSquared);
         this.avgFrame.append(4, this.steps, avgYSquared);
-        this.rFrame.append(this.steps, avgRSquared);
+        this.rFrame.append(Math.log(this.steps), Math.log(avgRSquared));
 
         for(Walker walker : this.walker2D.getWalkers()) {
             boolean isInList = false;
