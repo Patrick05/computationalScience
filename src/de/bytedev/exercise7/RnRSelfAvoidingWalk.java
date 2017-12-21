@@ -28,7 +28,7 @@ public class RnRSelfAvoidingWalk extends SimpleSelfAvoidingWalk {
         }
 
         this.ratioFrame.append(this.currentN, (1.0*countSuccessful)/this.nrTests);
-        this.rFrame.append(this.currentN, r2Sum/this.nrTests);
+        this.rFrame.append(Math.log(this.currentN), Math.log(r2Sum/countSuccessful));
 
         if(this.currentN == this.N) {
             this.control.calculationDone("DONE!");
