@@ -69,7 +69,7 @@ public abstract class AbstractOscillators implements ODE, Drawable {
                 this.state[i + 1] = 0;
             }
 
-            if( x < this.N ) {
+            if( x <= this.N ) {
                 this.k[x] = kValues;
             }
         }
@@ -119,7 +119,7 @@ public abstract class AbstractOscillators implements ODE, Drawable {
      * @param bNodeIndex
      * @return
      */
-    private double getSpringRateBetweenNodes(int aNodeIndex, int bNodeIndex) {
+    protected double getSpringRateBetweenNodes(int aNodeIndex, int bNodeIndex) {
         if( !(aNodeIndex >= 0 && aNodeIndex < this.getNumNodes()) ) {
             throw new IndexOutOfBoundsException("The first node with index "+aNodeIndex+" does not exist. Number of nodes: "+this.getNumNodes());
         }
