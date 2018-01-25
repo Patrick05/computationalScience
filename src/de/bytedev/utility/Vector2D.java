@@ -36,6 +36,16 @@ public class Vector2D {
     }
 
     /**
+     * Constructor for vector by angle.
+     *
+     * @param angle
+     */
+    public Vector2D(double angle) {
+        this.x = Math.cos(angle);
+        this.y = Math.sin(angle);
+    }
+
+    /**
      * Returns the x-value of the vector.
      *
      * @return
@@ -59,6 +69,16 @@ public class Vector2D {
      */
     public double getLength() {
         return Math.sqrt( Math.pow(this.x, 2) + Math.pow(this.y, 2) );
+    }
+
+    /**
+     * Inverts the direction of the vector.
+     */
+    public Vector2D invert() {
+        this.x *= -1;
+        this.y *= -1;
+
+        return this;
     }
 
     /**
