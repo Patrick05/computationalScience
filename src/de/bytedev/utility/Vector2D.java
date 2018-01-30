@@ -154,6 +154,17 @@ public class Vector2D {
     }
 
     /**
+     * Calculates the distance between two vectors.
+     * 
+     * @param a
+     * @param b
+     * @return
+     */
+    public static double distance(Vector2D a, Vector2D b) {
+        return Vector2D.sub(a, b).getLength();
+    }
+
+    /**
      * Resets the vector to origin (0|0)
      */
     public void setToOrigin() {
