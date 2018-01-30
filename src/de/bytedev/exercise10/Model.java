@@ -25,8 +25,8 @@ public class Model implements Drawable {
      * @param x
      * @param y
      */
-    public void addParticle(double x, double y) {
-        this.addParticle(new Particle(x, y));
+    public void addParticle(double x, double y, double charge) {
+        this.addParticle(new Particle(x, y, charge));
     }
 
     /**
@@ -57,7 +57,7 @@ public class Model implements Drawable {
         double potenial = 0;
 
         for (Particle particle: this.particles) {
-            potenial += Math.log(
+            potenial += particle.getCharge()*Math.log(
                     Vector2D.sub(particle.getPosition(), position).getLength()
             );
         }
@@ -71,12 +71,28 @@ public class Model implements Drawable {
         for (Particle particle: this.particles) {
             if(particle == p) continue;
 
-            potenial += Math.log(
-                    Vector2D.sub(particle.getPosition(), p.getPosition()).getLength()
+            potenial += particle.getCharge()*Math.log(
+                    Vector2D.distance(particle.getPosition(), p.getPosition())
             );
         }
 
-        return -potenial;
+        if(p.getCharge() > 0) {
+            return -potenial;
+        } else {
+            return potenial;
+        }
+    }
+
+    public boolean intersectsWithParticle(Particle p) {
+        for (Particle particle: this.particles) {
+            if(particle == p) continue;
+
+            if( Vector2D.distance(p.getPosition(), particle.getPosition()) < 0.1 ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

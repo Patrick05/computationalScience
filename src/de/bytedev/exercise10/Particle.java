@@ -2,13 +2,28 @@ package de.bytedev.exercise10;
 
 import de.bytedev.utility.Vector2D;
 import org.opensourcephysics.display.Circle;
+import org.opensourcephysics.display.InteractiveCircle;
 
+import java.awt.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Particle extends Circle {
+public class Particle extends InteractiveCircle {
 
-    public Particle(double x, double y) {
+    private double charge;
+
+    public Particle(double x, double y, double charge) {
         super(x, y);
+        this.charge = charge;
+
+        if(this.charge > 0) {
+            this.color = Color.RED;
+        } else {
+            this.color = Color.BLUE;
+        }
+    }
+
+    public double getCharge() {
+        return this.charge;
     }
 
     public Vector2D moveRandomly() {

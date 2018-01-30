@@ -34,7 +34,13 @@ public class ElectrostaticField extends AbstractSimulation implements Interactiv
 
         if(panel.getMouseAction()==InteractivePanel.MOUSE_CLICKED) {
 
-            this.model.addParticle( panel.getMouseX(), panel.getMouseY() );
+            if(panel.getMouseButton() == 1) { // Left mouse button
+                this.model.addParticle( panel.getMouseX(), panel.getMouseY(), 1.0);
+            }
+
+            if(panel.getMouseButton() == 3) { // Right mouse button
+                this.model.addParticle( panel.getMouseX(), panel.getMouseY(), -1.0);
+            }
 
             panel.repaint();
         }
@@ -48,15 +54,18 @@ public class ElectrostaticField extends AbstractSimulation implements Interactiv
 
             double oldPot = this.model.getPotentialFor(p);
             double newPot = Double.POSITIVE_INFINITY;
+            int i = 0;
 
-            while( oldPot < newPot ) {
+            while( oldPot < newPot && i < 100 ) {
                 Vector2D direction = p.moveRandomly();
 
                 newPot = this.model.getPotentialFor(p);
 
-                if(oldPot < newPot || !this.ellipse.intersects(p.getPosition()) ) {
+                if(oldPot < newPot || !this.ellipse.intersects(p.getPosition()) || this.model.intersectsWithParticle(p) ) {
                     p.move( direction.invert() );
                 }
+
+                i++;
             }
         }
     }
