@@ -11,6 +11,21 @@ import java.awt.event.MouseEvent;
 
 
 public class ElectrostaticField extends AbstractSimulation implements InteractiveMouseHandler {
+    enum Param {
+        CHARGE("charge");
+
+        private final String v;
+
+        Param(final String v) {
+            this.v = v;
+        }
+
+        @Override
+        public String toString() {
+            return v;
+        }
+    }
+
 
     private Model model;
 
@@ -29,17 +44,18 @@ public class ElectrostaticField extends AbstractSimulation implements Interactiv
     }
 
     @Override
+    public void reset() {
+        this.control.setAdjustableValue(Param.CHARGE.toString(), 1);
+    }
+
+    @Override
     public void handleMouseAction(InteractivePanel panel, MouseEvent evt) {
         panel.handleMouseAction(panel, evt); // panel moves the charge
 
         if(panel.getMouseAction()==InteractivePanel.MOUSE_CLICKED) {
 
             if(panel.getMouseButton() == 1) { // Left mouse button
-                this.model.addParticle( panel.getMouseX(), panel.getMouseY(), 1.0);
-            }
-
-            if(panel.getMouseButton() == 3) { // Right mouse button
-                this.model.addParticle( panel.getMouseX(), panel.getMouseY(), -1.0);
+                this.model.addParticle( panel.getMouseX(), panel.getMouseY(), this.control.getDouble(Param.CHARGE.toString()));
             }
 
             panel.repaint();
